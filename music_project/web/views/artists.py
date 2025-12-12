@@ -1,42 +1,54 @@
 from django.shortcuts import render
 from django.http import Http404
-from django.db.models import Avg, Count
-from music_app.models import Artist, Song, Album
+from music_app.repositories import UnitOfWork
+from django.db.models import Avg, Count, Q
 
-def artist_detail(request, pk):
+uow = UnitOfWork()
+
+def _get_artist_detail_data(pk):
     try:
-        artist = Artist.objects.get(pk=pk)
-    except Artist.DoesNotExist:
-        raise Http404("Виконавця не знайдено")
+        artist = uow.artists.get_by_id(pk)
+    except Exception: 
+        artist = None
+    if not artist: return None
+    
+    albums = artist.album_set.all() 
+    songs_qs = artist.song_set.filter(main_artist=artist).order_by('album__release_year', 'album__title', 'title') 
 
-    albums = Album.objects.filter(artists=artist)
-    songs = Song.objects.filter(main_artist=artist).order_by('album__release_year', 'album__title', 'title')
-
-    context = {
+    return {
         'artist': artist,
         'albums': albums,
-        'songs': songs,
-        'total_songs': songs.count(),
+        'songs': songs_qs,
+        'total_songs': songs_qs.count(),
         'total_albums': albums.count(),
-        'avg_duration': songs.aggregate(Avg('duration'))['duration__avg']
+        'avg_duration': songs_qs.aggregate(Avg('duration'))['duration__avg']
     }
-    return render(request, 'web/artist_detail.html', context)
+
+def artist_detail(request, pk):
+    detail_data = _get_artist_detail_data(pk)
+    if not detail_data:
+        raise Http404("Виконавця не знайдено")
+
+    return render(request, 'web/artist_detail.html', detail_data)
+
+def _filter_and_get_artists_qs(query):
+    artists_qs = uow.artists.model.objects.annotate(num_songs=Count('song'))
+    
+    if query:
+        artists_qs = artists_qs.filter(
+            Q(nickname__icontains=query) |
+            Q(real_name__icontains=query)
+        )
+    return artists_qs
+
 
 def artist_list(request):
     sort_by = request.GET.get('sort', 'nickname')
     order = request.GET.get('order', 'asc')
     query = request.GET.get('q', '').strip()
 
-    artists = list(
-        Artist.objects.annotate(num_songs=Count('song'))
-    )
-
-    if query:
-        artists = [
-            a for a in artists
-            if query.lower() in (a.nickname or "").lower()
-            or query.lower() in (a.real_name or "").lower()
-        ]
+    artists_qs = _filter_and_get_artists_qs(query)
+    artists = list(artists_qs)
 
     sort_map = {
         'id': lambda x: x.pk,

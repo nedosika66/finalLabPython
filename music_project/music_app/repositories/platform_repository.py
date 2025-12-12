@@ -1,6 +1,5 @@
-from .base_repository import BaseRepository
-from music_app.models import StreamingPlatform
+from music_app.models import Platform
 
-class StreamingPlatformRepository(BaseRepository):
-    def __init__(self):
-        super().__init__(StreamingPlatform)
+class PlatformRepository:
+    def get_all(self):
+        return Platform.objects.all()

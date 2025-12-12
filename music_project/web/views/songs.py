@@ -4,23 +4,27 @@ from django.http import Http404
 from music_app.repositories import UnitOfWork
 from web.forms import SongForm
 import logging
+from django.db.models import Q
 
 logger = logging.getLogger('web')
 uow = UnitOfWork()
+
+def _filter_and_get_songs_qs(query):
+    songs_qs = uow.songs.model.objects.all()
+    if query:
+        songs_qs = songs_qs.filter(
+            Q(title__icontains=query) |
+            Q(main_artist__nickname__icontains=query)
+        )
+    return songs_qs.select_related('main_artist', 'album')
 
 def song_list(request):
     sort_by = request.GET.get('sort', 'id')
     order = request.GET.get('order', 'asc')
     query = request.GET.get('q', '').strip()
 
-    songs = list(uow.songs.get_all())
-
-    if query:
-        songs = [
-            s for s in songs
-            if query.lower() in (s.title or "").lower()
-            or query.lower() in (s.main_artist.nickname if s.main_artist else "").lower()
-        ]
+    songs_qs = _filter_and_get_songs_qs(query)
+    songs = list(songs_qs) 
 
     sort_map = {
         'id': lambda x: x.pk,
