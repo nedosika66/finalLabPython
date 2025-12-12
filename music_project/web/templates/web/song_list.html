@@ -9,6 +9,11 @@
     
     .song-link { text-decoration: none; color: #333; font-weight: bold; display: block; }
     .song-link:hover { color: #007bff; text-decoration: underline; }
+
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 20px; }
+    .pagination-link { text-decoration: none; padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px; color: #007bff; }
+    .pagination-link:hover { background-color: #eee; }
+    .current-page { padding: 5px 10px; font-weight: bold; background-color: #007bff; color: white; border-radius: 4px; }
 </style>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -16,9 +21,10 @@
     <a href="{% url 'song_create' %}" class="btn btn-primary">+ Додати пісню</a>
 </div>
 
-<!-- 🔍 Пошук -->
 <form method="get" style="margin-bottom: 20px; display: flex; gap: 10px;">
     <input type="text" name="q" class="form-control" placeholder="Пошук пісень або виконавців..." value="{{ query }}">
+    <input type="hidden" name="sort" value="{{ current_sort }}">
+    <input type="hidden" name="order" value="{{ current_order }}">
     <button class="btn btn-secondary">Пошук</button>
 </form>
 
@@ -26,32 +32,32 @@
     <thead>
         <tr>
             <th class="{% if current_sort == 'id' %}active-sort{% endif %}">
-                <a href="?sort=id&order={% if current_sort == 'id' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                <a href="?sort=id&order={% if current_sort == 'id' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if query %}&q={{ query }}{% endif %}">
                     ID <span class="sort-icon">↕</span>
                 </a>
             </th>
             <th class="{% if current_sort == 'title' %}active-sort{% endif %}">
-                <a href="?sort=title&order={% if current_sort == 'title' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                <a href="?sort=title&order={% if current_sort == 'title' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if query %}&q={{ query }}{% endif %}">
                     Назва <span class="sort-icon">↕</span>
                 </a>
             </th>
             <th class="{% if current_sort == 'artist' %}active-sort{% endif %}">
-                <a href="?sort=artist&order={% if current_sort == 'artist' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                <a href="?sort=artist&order={% if current_sort == 'artist' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if query %}&q={{ query }}{% endif %}">
                     Виконавець <span class="sort-icon">↕</span>
                 </a>
             </th>
             <th class="{% if current_sort == 'album' %}active-sort{% endif %}">
-                <a href="?sort=album&order={% if current_sort == 'album' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                <a href="?sort=album&order={% if current_sort == 'album' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if query %}&q={{ query }}{% endif %}">
                     Альбом <span class="sort-icon">↕</span>
                 </a>
             </th>
             <th class="{% if current_sort == 'year' %}active-sort{% endif %}">
-                <a href="?sort=year&order={% if current_sort == 'year' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                <a href="?sort=year&order={% if current_sort == 'year' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if query %}&q={{ query }}{% endif %}">
                     Рік <span class="sort-icon">↕</span>
                 </a>
             </th>
             <th class="{% if current_sort == 'duration' %}active-sort{% endif %}">
-                <a href="?sort=duration&order={% if current_sort == 'duration' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                <a href="?sort=duration&order={% if current_sort == 'duration' and current_order == 'asc' %}desc{% else %}asc{% endif %}{% if query %}&q={{ query }}{% endif %}">
                     Тривалість <span class="sort-icon">↕</span>
                 </a>
             </th>
@@ -78,4 +84,23 @@
         {% endfor %}
     </tbody>
 </table>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1&sort={{ current_sort }}&order={{ current_order }}{% if query %}&q={{ query }}{% endif %}" class="pagination-link">« Перша</a>
+        <a href="?page={{ page_obj.previous_page_number }}&sort={{ current_sort }}&order={{ current_order }}{% if query %}&q={{ query }}{% endif %}" class="pagination-link">Попередня</a>
+    {% endif %}
+
+    <span class="current-page">
+        Сторінка {{ page_obj.number }} з {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&sort={{ current_sort }}&order={{ current_order }}{% if query %}&q={{ query }}{% endif %}" class="pagination-link">Наступна</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}&sort={{ current_sort }}&order={{ current_order }}{% if query %}&q={{ query }}{% endif %}" class="pagination-link">Остання »</a>
+    {% endif %}
+</div>
+{% endif %}
+
 {% endblock %}

@@ -4,10 +4,13 @@ from django.http import Http404
 from music_app.repositories import UnitOfWork
 from web.forms import SongForm
 import logging
-from django.db.models import Q
+from django.db.models import Q 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 logger = logging.getLogger('web')
 uow = UnitOfWork()
+
+PAGINATE_BY = 25
 
 def _filter_and_get_songs_qs(query):
     songs_qs = uow.songs.model.objects.all()
@@ -53,9 +56,20 @@ def song_list(request):
         songs = letters + others
     else:
         songs.sort(key=key_func, reverse=reverse)
+    
+    page = request.GET.get('page', 1)
+    paginator = Paginator(songs, PAGINATE_BY)
 
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+        
     return render(request, 'web/song_list.html', {
-        'songs': songs,
+        'songs': page_obj.object_list,
+        'page_obj': page_obj,
         'current_sort': sort_by,
         'current_order': order,
         'query': query

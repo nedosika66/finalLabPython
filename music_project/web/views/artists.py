@@ -2,8 +2,11 @@ from django.shortcuts import render
 from django.http import Http404
 from music_app.repositories import UnitOfWork
 from django.db.models import Avg, Count, Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 uow = UnitOfWork()
+
+PAGINATE_BY = 25
 
 def _get_artist_detail_data(pk):
     try:
@@ -87,8 +90,19 @@ def artist_list(request):
     else:
         artists.sort(key=key_func, reverse=reverse)
 
+    page = request.GET.get('page', 1)
+    paginator = Paginator(artists, PAGINATE_BY)
+
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
     context = {
-        'artists': artists,
+        'artists': page_obj.object_list,
+        'page_obj': page_obj,
         'current_sort': sort_by,
         'current_order': order,
         'query': query
