@@ -7,4 +7,4 @@ def home(request):
         'total_artists': Artist.objects.count(),
         'total_albums': Album.objects.count(),
     }
-    return render(request, 'web/home.html', context)
+    return render(request, 'web/index.html', context)
