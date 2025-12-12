@@ -1,0 +1,15 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<div style="width: 300px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; background: white;">
+    <h2 style="text-align: center;">Вхід у систему</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        {{ form.as_p }}
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Увійти</button>
+    </form>
+</div>
+{% endblock %}

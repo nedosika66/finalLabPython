@@ -1,0 +1,187 @@
+{% extends 'web/base.html' %}
+{% block content %}
+<style>
+    .dashboard-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; font-family: sans-serif; }
+    .dashboard-header { text-align: center; margin-bottom: 40px; color: #333; }
+    .filter-card {
+        background: #fff;
+        padding: 30px;
+        border-radius: 16px;
+        margin-bottom: 50px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .filter-select-group {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .main-select {
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 2px solid #007bff;
+        background: white;
+        color: #333;
+        cursor: pointer;
+        width: 100%;
+        max-width: 300px;
+    }
+    .filter-section {
+        display: none;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    .filter-section.active {
+        display: block;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .sliders-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px;
+    }
+    .slider-group { display: flex; flex-direction: column; gap: 10px; }
+    .slider-label { display: flex; justify-content: space-between; font-weight: 600; color: #555; }
+    .slider-value { color: #007bff; font-weight: bold; font-size: 18px; }
+    input[type=range] { width: 100%; -webkit-appearance: none; background: transparent; }
+    input[type=range]:focus { outline: none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #007bff; cursor: pointer; margin-top: -8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #ddd; border-radius: 3px; }
+    .secondary-select {
+        width: 100%;
+        max-width: 400px;
+        padding: 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto 20px;
+    }
+    .btn-apply {
+        display: block; margin: 0 auto; background: #007bff; color: #fff; border: none; padding: 12px 50px;
+        border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,123,255,0.3); transition: 0.2s;
+    }
+    .btn-apply:hover { background: #0056b3; transform: translateY(-2px); }
+    .chart-list { display: flex; flex-direction: column; gap: 60px; }
+    .chart-card { background: #fff; border-radius: 12px; padding: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); height: 600px; overflow: hidden; }
+    .chart-card > div { width: 100% !important; height: 100% !important; }
+    .no-data { display: flex; justify-content: center; align-items: center; height: 100%; font-size: 20px; color: #aaa; font-style: italic; }
+</style>
+
+<div class="dashboard-container">
+    <h1 class="dashboard-header">Аналітика</h1>
+
+    <div class="filter-card">
+        <form method="get" id="filterForm" onsubmit="return clearInactiveFields()">
+            
+            <div class="filter-select-group">
+                <label style="font-weight: bold; margin-right: 10px;">Фільтрувати за:</label>
+                <select name="filter_type" id="filterTypeSelect" class="main-select" onchange="toggleFilters()">
+                    <option value="year" {% if filter_type == 'year' %}selected{% endif %}>Роками випуску</option>
+                    <option value="genre" {% if filter_type == 'genre' %}selected{% endif %}>Жанром</option>
+                    <option value="country" {% if filter_type == 'country' %}selected{% endif %}>Країною виконавця</option>
+                </select>
+            </div>
+
+            <div id="yearSection" class="filter-section {% if filter_type == 'year' %}active{% endif %}">
+                <div class="sliders-grid">
+                    <div class="slider-group">
+                        <div class="slider-label"><span>Від року:</span><span class="slider-value" id="minDisplay">{{ min_year }}</span></div>
+                        <input type="range" name="min_year" min="1950" max="2025" value="{{ min_year }}" id="inputMin">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-label"><span>До року:</span><span class="slider-value" id="maxDisplay">{{ max_year }}</span></div>
+                        <input type="range" name="max_year" min="1950" max="2025" value="{{ max_year }}" id="inputMax">
+                    </div>
+                </div>
+            </div>
+
+            <div id="genreSection" class="filter-section {% if filter_type == 'genre' %}active{% endif %}">
+                <select name="genre" class="secondary-select">
+                    <option value="" disabled selected>-- Оберіть жанр --</option>
+                    {% for g in all_genres %}
+                        <option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div id="countrySection" class="filter-section {% if filter_type == 'country' %}active{% endif %}">
+                <select name="country" class="secondary-select">
+                    <option value="" disabled selected>-- Оберіть країну --</option>
+                    {% for c in all_countries %}
+                        <option value="{{ c }}" {% if selected_country == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-apply">Застосувати</button>
+        </form>
+    </div>
+
+    <div class="chart-list">
+        <div class="chart-card">{% if "Дані відсутні" not in chart1 %}{{ chart1|safe }}{% else %}<div class="no-data">Немає даних (Жанри)</div>{% endif %}</div>
+        <div class="chart-card">{% if "Дані відсутні" not in chart2 %}{{ chart2|safe }}{% else %}<div class="no-data">Немає даних (Роки)</div>{% endif %}</div>
+        <div class="chart-card">{% if "Дані відсутні" not in chart3 %}{{ chart3|safe }}{% else %}<div class="no-data">Немає даних (Артисти)</div>{% endif %}</div>
+        <div class="chart-card">{% if "Дані відсутні" not in chart4 %}{{ chart4|safe }}{% else %}<div class="no-data">Немає даних (Альбоми)</div>{% endif %}</div>
+        <div class="chart-card">{% if "Дані відсутні" not in chart5 %}{{ chart5|safe }}{% else %}<div class="no-data">Немає даних (Країни)</div>{% endif %}</div>
+        <div class="chart-card">{% if "Дані відсутні" not in chart6 %}{{ chart6|safe }}{% else %}<div class="no-data">Немає даних (Продюсери)</div>{% endif %}</div>
+    </div>
+</div>
+
+<script>
+    function clearInactiveFields() {
+        const type = document.getElementById('filterTypeSelect').value;
+        const inputMin = document.getElementById('inputMin');
+        const inputMax = document.getElementById('inputMax');
+        inputMin.name = (type === 'year' ? 'min_year' : '');
+        inputMax.name = (type === 'year' ? 'max_year' : '');
+        const genreSelect = document.querySelector('#genreSection select');
+        genreSelect.name = (type === 'genre' ? 'genre' : '');
+        const countrySelect = document.querySelector('#countrySection select');
+        countrySelect.name = (type === 'country' ? 'country' : '');
+        return true;
+    }
+
+    function toggleFilters() {
+        const type = document.getElementById('filterTypeSelect').value;
+        document.getElementById('yearSection').classList.remove('active');
+        document.getElementById('genreSection').classList.remove('active');
+        document.getElementById('countrySection').classList.remove('active');
+        if (type === 'year') document.getElementById('yearSection').classList.add('active');
+        else if (type === 'genre') document.getElementById('genreSection').classList.add('active');
+        else if (type === 'country') document.getElementById('countrySection').classList.add('active');
+        clearInactiveFields();
+    }
+
+    function initializeSliders() {
+        const iMin = document.getElementById("inputMin");
+        const iMax = document.getElementById("inputMax");
+        const dMin = document.getElementById("minDisplay");
+        const dMax = document.getElementById("maxDisplay");
+
+        function updateLabels() {
+            let v1 = parseInt(iMin.value);
+            let v2 = parseInt(iMax.value);
+            if (v1 > v2) {
+                if (this === iMin) {
+                    iMin.value = v2; 
+                    v1 = v2;
+                } else {
+                    iMax.value = v1;
+                    v2 = v1;
+                }
+            }
+            dMin.innerText = v1;
+            dMax.innerText = v2;
+        }
+
+        iMin.addEventListener("input", updateLabels);
+        iMax.addEventListener("input", updateLabels);
+        updateLabels();
+    }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleFilters();
+        initializeSliders();
+    });
+</script>
+{% endblock %}

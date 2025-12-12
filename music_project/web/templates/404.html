@@ -1,0 +1,11 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<div style="text-align: center; padding: 50px;">
+    <h1 style="font-size: 72px; color: #dc3545;">404</h1>
+    <h2>Сторінка не знайдена</h2>
+    <p>Не правильна адреса</p>
+    <br>
+    <a href="{% url 'song_list' %}" class="btn btn-primary">Повернутися на головну</a>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<style>
+    .hero-section {
+        text-align: center;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .hero-title { font-size: 3em; margin-bottom: 10px; font-weight: 800; }
+    .hero-subtitle { font-size: 1.2em; opacity: 0.9; margin-bottom: 30px; }
+    
+    .stats-row {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-top: 30px;
+    }
+    .stat-item { text-align: center; }
+    .stat-number { font-size: 2.5em; font-weight: bold; display: block; }
+    .stat-label { font-size: 1em; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+
+    .nav-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        padding: 0 10px;
+    }
+    .nav-card {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+        color: #333;
+        border: 1px solid #eee;
+    }
+    .nav-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border-color: #007bff;
+    }
+    /* Видалено .nav-icon */
+    .nav-title { font-size: 1.4em; font-weight: bold; margin-bottom: 10px; display: block; }
+    .nav-desc { color: #666; font-size: 0.95em; }
+</style>
+
+<div class="hero-section">
+    <div class="hero-title">Музична Лабораторія</div>
+    <div class="hero-subtitle">Система аналізу та управління музичними даними</div>
+    
+    <div class="stats-row">
+        <div class="stat-item">
+            <span class="stat-number">{{ total_songs }}</span>
+            <span class="stat-label">Пісень</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ total_artists }}</span>
+            <span class="stat-label">Артистів</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">{{ total_albums }}</span>
+            <span class="stat-label">Альбомів</span>
+        </div>
+    </div>
+</div>
+
+<div class="nav-grid">
+    <a href="{% url 'song_list' %}" class="nav-card">
+        <span class="nav-title">База Пісень</span>
+        <span class="nav-desc">Перегляд, редагування та управління списком треків</span>
+    </a>
+    
+    <a href="{% url 'artist_list' %}" class="nav-card">
+        <span class="nav-title">Список Артистів</span>
+        <span class="nav-desc">Перегляд профілів, фільтрація та сортування виконавців</span>
+    </a>
+
+    <a href="{% url 'dashboard' %}" class="nav-card">
+        <span class="nav-title">Аналітика (Plotly)</span>
+        <span class="nav-desc">Інтерактивні графіки та діаграми розподілу даних</span>
+    </a>
+
+    <a href="{% url 'dashboard_bokeh' %}" class="nav-card">
+        <span class="nav-title">Аналітика (Bokeh)</span>
+        <span class="nav-desc">Аналітика v2 (Високопродуктивні графіки)</span>
+    </a>
+
+    <a href="{% url 'performance' %}" class="nav-card">
+        <span class="nav-title">Performance Test</span>
+        <span class="nav-desc">Тестування швидкості бази даних (багатопотоковість)</span>
+    </a>
+
+    <a href="{% url 'external_data' %}" class="nav-card">
+        <span class="nav-title">Зовнішнє API</span>
+        <span class="nav-desc">Інтеграція та завантаження даних із зовнішніх джерел</span>
+    </a>
+</div>
+{% endblock %}

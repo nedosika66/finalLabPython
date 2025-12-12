@@ -1,0 +1,81 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<style>
+    th a { color: #333; text-decoration: none; display: flex; align-items: center; justify-content: space-between; }
+    th a:hover { color: #007bff; }
+    .sort-icon { font-size: 12px; margin-left: 5px; color: #999; }
+    th.active-sort { background-color: #e9ecef; }
+    
+    .song-link { text-decoration: none; color: #333; font-weight: bold; display: block; }
+    .song-link:hover { color: #007bff; text-decoration: underline; }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <h2>Список пісень</h2>
+    <a href="{% url 'song_create' %}" class="btn btn-primary">+ Додати пісню</a>
+</div>
+
+<!-- 🔍 Пошук -->
+<form method="get" style="margin-bottom: 20px; display: flex; gap: 10px;">
+    <input type="text" name="q" class="form-control" placeholder="Пошук пісень або виконавців..." value="{{ query }}">
+    <button class="btn btn-secondary">Пошук</button>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th class="{% if current_sort == 'id' %}active-sort{% endif %}">
+                <a href="?sort=id&order={% if current_sort == 'id' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    ID <span class="sort-icon">↕</span>
+                </a>
+            </th>
+            <th class="{% if current_sort == 'title' %}active-sort{% endif %}">
+                <a href="?sort=title&order={% if current_sort == 'title' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Назва <span class="sort-icon">↕</span>
+                </a>
+            </th>
+            <th class="{% if current_sort == 'artist' %}active-sort{% endif %}">
+                <a href="?sort=artist&order={% if current_sort == 'artist' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Виконавець <span class="sort-icon">↕</span>
+                </a>
+            </th>
+            <th class="{% if current_sort == 'album' %}active-sort{% endif %}">
+                <a href="?sort=album&order={% if current_sort == 'album' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Альбом <span class="sort-icon">↕</span>
+                </a>
+            </th>
+            <th class="{% if current_sort == 'year' %}active-sort{% endif %}">
+                <a href="?sort=year&order={% if current_sort == 'year' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Рік <span class="sort-icon">↕</span>
+                </a>
+            </th>
+            <th class="{% if current_sort == 'duration' %}active-sort{% endif %}">
+                <a href="?sort=duration&order={% if current_sort == 'duration' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Тривалість <span class="sort-icon">↕</span>
+                </a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for song in songs %}
+        <tr>
+            <td>{{ song.pk }}</td>
+            <td><a href="{% url 'song_detail' pk=song.pk %}" class="song-link">{{ song.title }}</a></td>
+            <td>
+                {% if song.main_artist %}
+                    <a href="{% url 'artist_detail' pk=song.main_artist.pk %}" style="text-decoration: none; color: #007bff;">
+                        {{ song.main_artist.nickname }}
+                    </a>
+                {% else %}-{% endif %}
+            </td>
+            <td>{{ song.album.title|default:"-" }}</td>
+            <td>{{ song.release_year }}</td>
+            <td>{{ song.duration|time:"i:s" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align: center;">Список порожній.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

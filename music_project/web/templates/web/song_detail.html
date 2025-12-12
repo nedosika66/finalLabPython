@@ -1,0 +1,192 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+    .stat-card {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+    }
+    .stat-label {
+        font-size: 0.85em;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+    }
+    .stat-value {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #333;
+    }
+    .lyrics-box {
+        background: #fff;
+        border: 1px solid #eee;
+        padding: 20px;
+        border-radius: 8px;
+        white-space: pre-line;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+</style>
+
+<a href="{% url 'song_list' %}" class="btn">← Назад до списку</a>
+
+<div style="border-bottom: 2px solid #eee; margin-bottom: 20px; padding-top: 10px;">
+    <h1>{{ song.title }}</h1>
+    <h3>
+        Виконавець: 
+        <a href="{% url 'artist_detail' pk=song.main_artist.pk %}" style="text-decoration: none; color: #333;">
+            {{ song.main_artist.nickname }}
+        </a>
+    </h3>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 20px;">
+    <div><strong>Альбом:</strong> {{ song.album.title|default:"Сингл" }}</div>
+    <div><strong>Жанр:</strong> {{ song.genre.name }}</div>
+    <div><strong>Рік:</strong> {{ song.release_year }}</div>
+    <div><strong>Тривалість:</strong> {{ song.duration|time:"i:s" }}</div>
+</div>
+
+<hr>
+
+<h4>Аудіо Характеристики:</h4>
+<div class="stats-grid">
+    {% if song.bpm %}
+    <div class="stat-card">
+        <div class="stat-label">BPM</div>
+        <div class="stat-value">{{ song.bpm }}</div>
+    </div>
+    {% endif %}
+
+    {% if song.key %}
+    <div class="stat-card">
+        <div class="stat-label">Key (Тональність)</div>
+        <div class="stat-value">{{ song.key }}</div>
+    </div>
+    {% endif %}
+
+    {% if song.mode is not None %}
+    <div class="stat-card">
+        <div class="stat-label">Mode</div>
+        <div class="stat-value">{{ song.mode }}</div>
+    </div>
+    {% endif %}
+
+    {% if song.danceability %}
+    <div class="stat-card">
+        <div class="stat-label">Danceability</div>
+        <div class="stat-value">{{ song.danceability }}</div>
+    </div>
+    {% endif %}
+
+    {% if song.energy %}
+    <div class="stat-card">
+        <div class="stat-label">Energy</div>
+        <div class="stat-value">{{ song.energy }}</div>
+    </div>
+    {% endif %}
+
+    {% if song.valence %}
+    <div class="stat-card">
+        <div class="stat-label">Valence</div>
+        <div class="stat-value">{{ song.valence }}</div>
+    </div>
+    {% endif %}
+    
+    {% if song.loudness %}
+    <div class="stat-card">
+        <div class="stat-label">Loudness (dB)</div>
+        <div class="stat-value">{{ song.loudness }}</div>
+    </div>
+    {% endif %}
+</div>
+
+{% if song.lyrics %}
+    <h4>Текст пісні:</h4>
+    <div class="lyrics-box">
+        {{ song.lyrics }}
+    </div>
+{% endif %}
+
+<hr>
+
+<div style="display: flex; gap: 50px;">
+    <div>
+        <h4>За участі (Feat):</h4>
+        <ul>
+            {% for artist in song.features.all %}
+                <li>
+                    <a href="{% url 'artist_detail' pk=artist.pk %}" style="text-decoration: none; color: #007bff; font-weight: bold;">
+                        {{ artist.nickname }}
+                    </a>
+                </li>
+            {% empty %}
+                <li style="color: #999;">Немає</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div>
+        <h4>Продюсери:</h4>
+        <ul>
+            {% for producer in song.producers.all %}
+                <li>{{ producer.nickname }}</li>
+            {% empty %}
+                <li style="color: #999;">Не вказано</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<hr>
+
+<h4>Доступність на платформах:</h4>
+<table style="width: 100%; max-width: 600px;">
+    <tr>
+        <th>Платформа</th>
+        <th>Статус</th>
+        <th>Посилання</th>
+    </tr>
+    {% for availability in song.songavailability_set.all %}
+    <tr>
+        <td>{{ availability.platform.name }}</td>
+        <td>
+            {% if availability.is_available %}
+                <span style="color: green; font-weight: bold;">✔ Доступно</span>
+            {% else %}
+                <span style="color: red;">✖ Недоступно</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if availability.link %}
+                <a href="{{ availability.link }}" target="_blank">Перейти ↗</a>
+            {% else %}
+                -
+            {% endif %}
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="3">Інформація відсутня</td></tr>
+    {% endfor %}
+</table>
+
+<div class="mt-20" style="margin-top: 30px;">
+    <a href="{% url 'song_edit' pk=song.pk %}" class="btn">✏ Редагувати</a>
+    
+    <form action="{% url 'song_delete' pk=song.pk %}" method="post" style="display: inline-block;" onsubmit="return confirm('Ви точно хочете видалити цей запис?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">🗑 Видалити</button>
+    </form>
+</div>
+{% endblock %}

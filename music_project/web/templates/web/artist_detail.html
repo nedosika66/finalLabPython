@@ -1,0 +1,102 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<style>
+    .artist-header {
+        background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .artist-info h1 { margin: 0; font-size: 3em; }
+    .artist-meta { margin-top: 10px; font-size: 1.1em; opacity: 0.9; }
+    .artist-stats { display: flex; gap: 30px; text-align: center; }
+    .stat-box { background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 8px; }
+    .stat-num { font-size: 1.5em; font-weight: bold; display: block; }
+    
+    .section-title { margin-top: 40px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333; }
+    
+    .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+    .album-card { 
+        background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; 
+        transition: transform 0.2s; 
+    }
+    .album-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .album-year { color: #777; font-size: 0.9em; margin-top: 5px; }
+
+    .song-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+    .song-table th, .song-table td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; }
+    .song-table th { background-color: #f8f9fa; font-weight: bold; color: #555; }
+    .song-table tr:hover { background-color: #f1f1f1; }
+</style>
+
+<div class="artist-header">
+    <div class="artist-info">
+        <h1>{{ artist.nickname }}</h1>
+        <div class="artist-meta">
+            {% if artist.real_name %}<span>👤 {{ artist.real_name }}</span> &bull; {% endif %}
+            {% if artist.country %}<span>🌍 {{ artist.country }}</span> &bull; {% endif %}
+            {% if artist.birth_year %}<span>📅 Нар. {{ artist.birth_year }}</span>{% endif %}
+        </div>
+    </div>
+    <div class="artist-stats">
+        <div class="stat-box">
+            <span class="stat-num">{{ total_albums }}</span> Альбомів
+        </div>
+        <div class="stat-box">
+            <span class="stat-num">{{ total_songs }}</span> Пісень
+        </div>
+    </div>
+</div>
+
+{% if albums %}
+    <h2 class="section-title">💿 Альбоми</h2>
+    <div class="album-grid">
+        {% for album in albums %}
+        <div class="album-card">
+            <div style="font-size: 40px; margin-bottom: 10px;">🎵</div>
+            <strong>{{ album.title }}</strong>
+            <div class="album-year">{{ album.release_year }}</div>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<h2 class="section-title">🎶 Всі пісні</h2>
+<table class="song-table">
+    <thead>
+        <tr>
+            <th>Назва</th>
+            <th>Альбом</th>
+            <th>Рік</th>
+            <th>Тривалість</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for song in songs %}
+        <tr>
+            <td><strong>{{ song.title }}</strong></td>
+            <td>{{ song.album.title|default:"—" }}</td>
+            <td>{{ song.release_year }}</td>
+            <td>{{ song.duration|time:"i:s" }}</td>
+            <td>
+                <a href="{% url 'song_detail' pk=song.pk %}" style="text-decoration: none; color: #007bff;">Деталі ➡</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center; padding: 20px;">Пісень поки немає</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="margin-top: 40px;">
+    <a href="{% url 'song_list' %}" class="btn">⬅ На головну</a>
+</div>
+
+{% endblock %}

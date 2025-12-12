@@ -1,0 +1,73 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<style>
+    th a { color: #333; text-decoration: none; display: flex; align-items: center; justify-content: space-between; }
+    th a:hover { color: #007bff; }
+    .sort-icon { font-size: 12px; margin-left: 5px; color: #999; }
+    th.active-sort { background-color: #e9ecef; }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <h2>Виконавці</h2>
+</div>
+
+<!-- 🔍 Пошук -->
+<form method="get" style="margin-bottom: 20px; display: flex; gap: 10px;">
+    <input type="text" name="q" class="form-control" placeholder="Пошук виконавців..." value="{{ query }}">
+    <button class="btn btn-secondary">Пошук</button>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th class="{% if current_sort == 'id' %}active-sort{% endif %}">
+                <a href="?sort=id&order={% if current_sort == 'id' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    ID <span class="sort-icon">↕</span>
+                </a>
+            </th>
+            <th class="{% if current_sort == 'nickname' %}active-sort{% endif %}">
+                <a href="?sort=nickname&order={% if current_sort == 'nickname' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Псевдонім <span class="sort-icon">↕</span>
+                </a>
+            </th>
+            <th class="{% if current_sort == 'real_name' %}active-sort{% endif %}">
+                <a href="?sort=real_name&order={% if current_sort == 'real_name' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Справжнє ім'я <span class="sort-icon">↕</span>
+                </a>
+            </th>
+            <th class="{% if current_sort == 'country' %}active-sort{% endif %}">
+                <a href="?sort=country&order={% if current_sort == 'country' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Країна <span class="sort-icon">↕</span>
+                </a>
+            </th>
+            <th class="{% if current_sort == 'songs' %}active-sort{% endif %}">
+                <a href="?sort=songs&order={% if current_sort == 'songs' and current_order == 'asc' %}desc{% else %}asc{% endif %}">
+                    Пісень <span class="sort-icon">↕</span>
+                </a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for artist in artists %}
+        <tr>
+            <td>{{ artist.pk }}</td>
+            <td>
+                <a href="{% url 'artist_detail' pk=artist.pk %}" style="text-decoration: none; color: #007bff; font-weight: bold;">
+                    {{ artist.nickname }}
+                </a>
+            </td>
+            <td>{{ artist.real_name|default:"-" }}</td>
+            <td>{{ artist.country|default:"-" }}</td>
+            <td>
+                <span style="background: #e9ecef; padding: 2px 8px; border-radius: 10px; font-size: 0.9em;">
+                    {{ artist.num_songs }}
+                </span>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align: center;">Список порожній.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

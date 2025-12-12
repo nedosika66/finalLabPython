@@ -1,0 +1,6 @@
+<h1>Видалити пісню "{{ song.title }}"?</h1>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Так, видалити</button>
+</form>
+<a href="{% url 'song_detail' pk=song.pk %}">Ні, скасувати</a>

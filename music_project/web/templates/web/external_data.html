@@ -1,0 +1,35 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<h2>Дані з API (порт 8001)</h2>
+<p>Ця сторінка завантажує дані з іншого сервера.</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Назва</th>
+            <th>Дія</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in data %}
+        <tr>
+            <td>{{ item.song_id }}</td>
+            <td>{{ item.title }}</td>
+            <td>
+                <form method="post" onsubmit="return confirm('Видалити через API?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="id_to_delete" value="{{ item.song_id }}">
+                    <button type="submit" class="btn btn-danger">Видалити</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3" style="text-align: center; color: red;">Помилка з'єднання або немає даних.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

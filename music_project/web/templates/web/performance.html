@@ -1,0 +1,41 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto; text-align: center; padding: 40px 0;">
+    <h1>Тестування Продуктивності БД</h1>
+    <p style="color: #666; margin-bottom: 30px;">
+        Тест виконує <b>100 важких запитів</b> до бази даних, використовуючи багатопотоковість (concurrent.futures).
+        <br>Шукаємо оптимальну кількість потоків для комп'ютера.
+    </p>
+
+    {% if not is_running %}
+        <form method="get">
+            <button type="submit" name="run_test" value="true" 
+                    style="background: #6610f2; color: white; border: none; padding: 15px 40px; font-size: 18px; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 16, 242, 0.3);">
+                 Запустити Тест
+            </button>
+        </form>
+    {% else %}
+        <a href="{% url 'performance' %}" class="btn" style="margin-bottom: 20px;"> Скинути / Запустити знову</a>
+        
+        <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 30px;">
+            {{ chart|safe }}
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <tr style="background: #f8f9fa;">
+                <th style="padding: 12px; border: 1px solid #ddd;">Потоки (Threads)</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Час (сек)</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Швидкість (запитів/сек)</th>
+            </tr>
+            {% for row in results %}
+            <tr style="text-align: center;">
+                <td style="padding: 10px; border: 1px solid #ddd;"><b>{{ row.workers }}</b></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ row.time }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd; color: #28a745; font-weight: bold;">{{ row.queries_per_sec }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+</div>
+{% endblock %}

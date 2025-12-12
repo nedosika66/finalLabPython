@@ -1,0 +1,16 @@
+{% extends 'web/base.html' %}
+
+{% block content %}
+<h2>{% if form.instance.pk %}Редагування{% else %}Додавання{% endif %} пісні</h2>
+
+<form method="post">
+    {% csrf_token %}
+    
+    {{ form.as_p }}
+
+    <div class="mt-20">
+        <button type="submit" class="btn btn-primary">Зберегти</button>
+        <a href="{% url 'song_list' %}" class="btn">Скасувати</a>
+    </div>
+</form>
+{% endblock %}
